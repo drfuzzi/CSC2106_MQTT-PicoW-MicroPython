@@ -64,13 +64,17 @@ allow_anonymous true
 ### 3. Install MQTT Library
 You need the `umqtt.simple` library for MQTT communication:
 1. In Thonny's **Files** view, create a folder named `lib` on the Pico W.
-<img src="/img/Thonny Where to Find Files.png" width=25% height=25%>
+
+<img width="308" height="85" alt="image" src="https://github.com/user-attachments/assets/0630f00d-4dc0-43b6-893f-7b1bdf3943df" />
+<!--
+ <img src="/img/Thonny Where to Find Files.png" width=25% height=25%>
 <img src="/img/Thonny Seperate Files.png" width=25% height=25%>
 <img src="/img/Thonny Create Directory(Folder).png" width=25% height=25%>
+-->
 
-2. Inside `lib`, create another folder named `umqtt`.
+3. Inside `lib`, create another folder named `umqtt`.
 
-3. Download `simple.py` from the [MicroPython Library](https://github.com/micropython/micropython-lib/tree/master/micropython/umqtt.simple) and upload it into the `umqtt` folder.
+4. Download `simple.py` from the [MicroPython Library](https://github.com/micropython/micropython-lib/tree/master/micropython/umqtt.simple) and upload it into the `umqtt` folder.
 
 <img src="/img/Thonny File Upload.png" width=25% height=25%>
 <img src="/img/Thonny Options.png" width=25% height=25%>
