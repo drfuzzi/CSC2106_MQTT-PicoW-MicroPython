@@ -1,8 +1,8 @@
 # Configure Raspberry Pi Pico W as an MQTT Client using MicroPython
 
 ## Objectives
-- Set up an MQTT broker on a PC.
-- Configure Raspberry Pi Pico W as MQTT publishers/subscribers.
+- Set up an MQTT broker on a RPi.
+- Configure Raspberry Pi Pico W as MQTT Client - publishers/subscribers.
 - Explore MQTT features like QoS, LWT, and retained messages.
 
 ---
