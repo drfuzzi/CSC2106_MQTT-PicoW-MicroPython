@@ -81,69 +81,197 @@ You need the `umqtt.simple` library for MQTT communication:
 
  <img src="/img/Thonny How to Run Code.png" width=25% height=25%>
 
-### A. Simple Publish
+### A. Pico A → *Command publisher* (event-driven, button presses)
+
+## picoA.py (publisher driven by buttons)
+
+* **Hardware input**: Reads two buttons on **GP21** and **GP22** (`Pin.IN`, pull-ups). 
+* **MQTT behaviour**: Connects, publishes **status online/offline** to `stm/devA/status`. 
+* **Publishes messages**:
+
+  * On GP21 press: publishes `TOGGLE` to `stm/led/cmd` (QoS 1). 
+  * On GP22 press: publishes `HELLO` to `stm/led/hello` (QoS 1). 
+* **No subscriptions**: It does not subscribe or process incoming MQTT messages. 
+* **Reconnect logic**: Only attempts reconnect **when a publish fails** (inside `publish_toggle()` / `publish_hello()`). 
+
 ```python
 import network, time
 from umqtt.simple import MQTTClient
+from machine import Pin
 
-# Wi-Fi Credentials
-SSID = "YourWiFi"
-PASSWORD = "YourPassword"
+# ==== EDIT THESE ====
+SSID = "SSID"
+PASSWORD = "SSID-Password"
+BROKER = "BROKER-IP"
+CLIENT_ID = b"PicoA"
+# ====================
 
-# MQTT Details
-BROKER = "192.168.1.10"
-TOPIC = "pico/test"
-CLIENT_ID = "PicoW_Client"
+BUTTON_PIN_21 = 21  # GP21 -> button to GND
+BUTTON_PIN_22 = 22  # GP22 -> button to GND
+CMD_TOPIC     = b"csc2106/led/cmd"
+HELLO_TOPIC   = b"csc2106/led/hello"
+STATUS_TOPIC  = b"csc2106/devA/status"
+
+# Initialize both button pins
+btn21 = Pin(BUTTON_PIN_21, Pin.IN, Pin.PULL_UP)
+btn22 = Pin(BUTTON_PIN_22, Pin.IN, Pin.PULL_UP)
 
 def wifi_connect():
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
     wlan.connect(SSID, PASSWORD)
     while not wlan.isconnected():
-        time.sleep(1)
-    print("Connected:", wlan.ifconfig())
+        time.sleep(0.2)
+    print("WiFi:", wlan.ifconfig())
 
-def connect_mqtt():
-    client = MQTTClient(CLIENT_ID, BROKER)
-    client.connect()
-    return client
+def make_client():
+    # keepalive ensures broker notices disconnection; LWT tells others you're offline
+    c = MQTTClient(CLIENT_ID, BROKER, keepalive=30)
+    c.set_last_will(STATUS_TOPIC, b"offline", retain=True, qos=1)
+    c.connect()
+    # Advertise we're online (retained so late subscribers see it)
+    c.publish(STATUS_TOPIC, b"online", retain=True, qos=1)
+    print("MQTT connected & status=online")
+    return c
+
+# Function to handle publishing and reconnection logic
+def publish_toggle(client):
+    try:
+        client.publish(CMD_TOPIC, b"TOGGLE", qos=1)
+        return client # return the same client if successful
+    except Exception as e:
+        # try to re-connect once
+        print("Publish failed, reconnecting...", e)
+        try:
+            client.disconnect()
+        except:
+            pass
+        return make_client() # return a new client
+
+# Function to handle publishing and reconnection logic
+def publish_hello(client):
+    try:
+        client.publish(HELLO_TOPIC, b"HELLO", qos=1)
+        return client # return the same client if successful
+    except Exception as e:
+        # try to re-connect once
+        print("Publish failed, reconnecting...", e)
+        try:
+            client.disconnect()
+        except:
+            pass
+        return make_client() # return a new client
+
+def main():
+    wifi_connect()
+    client = make_client()
+
+    # simple edge detect without debouncing
+    last21 = btn21.value()
+    last22 = btn22.value()
+    
+    # Removed: last_change, DEBOUNCE_MS
+
+    while True:
+        # Check Button 21 (GP21)
+        v21 = btn21.value()
+        if v21 != last21:
+            last21 = v21
+            if v21 == 0:  # pressed
+                print("Button 21 pressed -> publish TOGGLE")
+                client = publish_toggle(client) # Update client if re-connection occurred
+
+        # Check Button 22 (GP22)
+        v22 = btn22.value()
+        if v22 != last22:
+            last22 = v22
+            if v22 == 0:  # pressed
+                print("Button 22 pressed -> publish HELLO")
+                client = publish_hello(client) # Update client if re-connection occurred
+
+        # let the broker know we're alive (keepalive pings happen under the hood)
+        time.sleep(0.02)
+
+main()
+```
+### B. Pico B → *Command consumer + actuator* (always listening, reacts to commands)
+
+## picoB.py (subscriber/actuator that toggles an LED)
+
+* **Hardware output**: Drives an LED on **GP20** (`Pin.OUT`). 
+* **MQTT behaviour**: Connects, sets a callback, **subscribes** to `stm/led/cmd` (QoS 1), and publishes **status online/offline** to `stm/devB/status`. 
+* **Processes incoming messages**:
+
+  * If it receives `TOGGLE` on `stm/led/cmd`, it toggles the LED and publishes an ACK (`ON`/`OFF`) to `stm/led/ack` (QoS 1). 
+* **Reconnect logic**: Continuously calls `client.check_msg()`; if any MQTT error occurs, it reconnects. 
+* **Note**: `on_msg()` uses the global `client` variable (works here because `client` is defined globally after `make_client()`). 
+
+```
+import network, time
+from umqtt.simple import MQTTClient
+from machine import Pin
+
+# ==== EDIT THESE ====
+SSID = "SSID"
+PASSWORD = "password"
+BROKER = "10.122.12.25"
+CLIENT_ID = b"PicoB"
+# ====================
+
+LED_PIN = 20   # GP20 -> LED+ (through resistor) to GND
+CMD_TOPIC   = b"stm/led/cmd"
+ACK_TOPIC   = b"stm/led/ack"
+STATUS_TOPIC= b"stm/devB/status"
+
+led = Pin(LED_PIN, Pin.OUT, value=0)
+
+def wifi_connect():
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
+    wlan.connect(SSID, PASSWORD)
+    while not wlan.isconnected():
+        time.sleep(0.2)
+    print("WiFi:", wlan.ifconfig())
+
+def on_msg(topic, msg):
+    if topic == CMD_TOPIC and msg == b"TOGGLE":
+        led.value(0 if led.value() else 1)
+        state = b"ON" if led.value() else b"OFF"
+        print("Toggled LED ->", state)
+        try:
+            client.publish(ACK_TOPIC, state, qos=1)
+        except Exception as e:
+            print("Ack publish error:", e)
+
+def make_client():
+    c = MQTTClient(CLIENT_ID, BROKER, keepalive=30)
+    c.set_last_will(STATUS_TOPIC, b"offline", retain=True, qos=1)
+    c.connect()
+    c.set_callback(on_msg)
+    c.subscribe(CMD_TOPIC, qos=1)
+    c.publish(STATUS_TOPIC, b"online", retain=True, qos=1)
+    print("MQTT connected, subscribed, status=online")
+    return c
 
 wifi_connect()
-mqtt = connect_mqtt()
-mqtt.publish(TOPIC, "Hello from Pico W!")
-mqtt.disconnect()
-```
-### B. Publish on Button Press
-```
-from machine import Pin
-import time
-
-button = Pin(20, Pin.IN, Pin.PULL_UP)
-led = Pin("LED", Pin.OUT)
+client = make_client()
 
 while True:
-    if not button.value():
-        led.on()
-        mqtt.publish(TOPIC, "Button Pressed!")
+    try:
+        client.check_msg()   # non-blocking; calls on_msg when something arrives
+    except Exception as e:
+        print("MQTT error, reconnecting...", e)
+        try:
+            client.disconnect()
+        except:
+            pass
         time.sleep(1)
-        led.off()
-    time.sleep(0.1)
-```
-### C. Control LED via MQTT
-```
-def callback(topic, msg):
-    if msg.decode() == "on":
-        led.on()
-    elif msg.decode() == "off":
-        led.off()
+        client = make_client()
+    time.sleep(0.02)
 
-mqtt.set_callback(callback)
-mqtt.subscribe("pico/led")
 
-while True:
-    mqtt.check_msg()
-    time.sleep(0.1)
 ```
+
 ## Advanced MQTT Configuration
 
 ### 1. Quality of Service (QoS)
