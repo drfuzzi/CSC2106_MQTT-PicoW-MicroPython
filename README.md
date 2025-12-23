@@ -234,50 +234,15 @@ The Pico W uses `umqtt.simple` for MQTT communication.
 | Failure handling | Reconnect on publish | Reconnect on receive      |
 
 ---
-
-## VII. Persistent Sessions
-
-To keep subscriptions active across disconnects:
-
-```python
-client = MQTTClient(CLIENT_ID, BROKER, clean_session=False)
-```
-
----
-
-## VIII. Troubleshooting
-
-| Issue                | Solution                  |
-| -------------------- | ------------------------- |
-| No messages received | Check broker IP and topic |
-| Wi-Fi not connecting | Verify SSID/password      |
-| Client conflicts     | Use unique `CLIENT_ID`    |
-
----
-
 ## IX. References
 
 * Mosquitto Install Guide
   [http://www.steves-internet-guide.com/install-mosquitto-broker/](http://www.steves-internet-guide.com/install-mosquitto-broker/)
-
 * Mosquitto Client Guide
   [http://www.steves-internet-guide.com/mosquitto_pub-sub-clients/](http://www.steves-internet-guide.com/mosquitto_pub-sub-clients/)
-
 * ThingsBoard MQTT Integration
   [https://thingsboard.io/docs/user-guide/integrations/mqtt/](https://thingsboard.io/docs/user-guide/integrations/mqtt/)
-
 * ThingSpeak MQTT Basics
   [https://www.mathworks.com/help/thingspeak/mqtt-basics.html](https://www.mathworks.com/help/thingspeak/mqtt-basics.html)
 
-```
-
----
-
-If you want next:
-- 🔹 tighten wording for students
-- 🔹 extract this into **two lab handouts**
-- 🔹 add **assessment checkpoints**
-- 🔹 add **ACL + security section**
-
-Say which one.
 ```
