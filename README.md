@@ -1,20 +1,28 @@
 # Configure Raspberry Pi Pico W as an MQTT Client using MicroPython
 
-## Objectives
-- Set up an MQTT broker on a RPi.
-- Configure Raspberry Pi Pico W as MQTT Client - publishers/subscribers.
-- Explore MQTT features like QoS, LWT, and retained messages.
+## I. Objectives
+
+By the end of this session, participants will be able to set up their Raspberry Pi Pico W (as clients) and Raspberry Pi (as broker) to develop a solution using Mosquitto's MQTT. They will also explore MQTT features like QoS, LWT, and retained messages.
+
+## II. Prerequisites and Setup
+
+### A. Hardware & Software
+
+  * Raspberry Pi Pico W board.
+  * Micro-USB cable for power and data.
+  * Computer with a **[Thonny](https://thonny.org/)** IDE (for MicroPython development).
+  * The Pico W must be running the **latest MicroPython firmware**.
+
+### B. Installing MicroPython
+
+1.  If not already done, hold the **BOOTSEL** button while connecting the Pico W to your computer.
+2.  The Pico W should appear as a drive named **RPI-RP2**.
+3.  Drag and drop the official MicroPython [UF2 file](https://micropython.org/resources/firmware/RPI_PICO_W-20251209-v1.27.0.uf2) onto this drive. The drive will disappear, and the Pico W will reboot running MicroPython.
+4.  Open **Thonny** and ensure it is configured to talk to the Pico W.
 
 ---
 
-## Equipment
-- Computer or laptop
-- Raspberry Pi Pico W with MicroPython firmware
-- MQTT broker software (e.g., Mosquitto)
-
----
-
-## Introduction
+## III. MQTT Setup on MicroPython
 MQTT (Message Queue Telemetry Transport) is a lightweight messaging protocol ideal for IoT applications where network bandwidth and processing power are limited. It works on a publish/subscribe model using topics, making it easy to send and receive messages between devices.
 
 ### Key Components
