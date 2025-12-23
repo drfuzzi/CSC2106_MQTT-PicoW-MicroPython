@@ -103,14 +103,15 @@ You need the `umqtt.simple` library for MQTT communication:
 * LWT payload: `"offline"`
 * Published **with retain = True**
 
+---
 Meaning:
 * If Pico A dies suddenly, the broker publishes: `csc2106/devA/status = offline (retained)`
 * Any subscriber immediately sees Pico A as offline.
 
-* Uses **QoS 1** for:
+Uses **QoS 1** for:
 * Command messages: `csc2106/led/cmd` & `csc2106/led/hello`
 * Status messages: `csc2106/devA/status`
----
+
 Why this makes sense:
 * Button presses are **important events**
 * Losing a TOGGLE command is bad
@@ -231,11 +232,12 @@ main()
 * Also publishes `"online"` on successful connect
 * LWT publishes `"offline"` on unexpected disconnect
 
+---
 Meaning:
 * Pico B’s availability is independently tracked.
 * This is the **correct IoT heartbeat pattern**.
 
-* Uses **QoS 1** for:
+Uses **QoS 1** for:
 * Subscription to: `csc2106/led/cmd`
 * ACK publish to: `csc2106/led/ack`
 * Status messages: `csc2106/devB/status`
@@ -244,7 +246,7 @@ Why this makes sense:
 * Device must not miss commands
 * ACK must reliably reach observers
 * Exactly matches expected behaviour of an actuator
-
+---
 
 
 **picoB.py (subscriber/actuator that toggles an LED)**
