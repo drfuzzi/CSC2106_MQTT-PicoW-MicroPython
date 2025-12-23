@@ -4,16 +4,16 @@ from machine import Pin
 
 # ==== EDIT THESE ====
 SSID = "SSID"
-PASSWORD = "password"
-BROKER = "10.122.12.25"
+PASSWORD = "SSID-Password"
+BROKER = "BROKER-IP"
 CLIENT_ID = b"PicoA"
 # ====================
 
 BUTTON_PIN_21 = 21  # GP21 -> button to GND
 BUTTON_PIN_22 = 22  # GP22 -> button to GND
-CMD_TOPIC     = b"stm/led/cmd"
-HELLO_TOPIC     = b"stm/led/hello"
-STATUS_TOPIC  = b"stm/devA/status"
+CMD_TOPIC     = b"csc2106/led/cmd"
+HELLO_TOPIC     = b"csc2106/led/hello"
+STATUS_TOPIC  = b"csc2106/devA/status"
 
 # Initialize both button pins
 btn21 = Pin(BUTTON_PIN_21, Pin.IN, Pin.PULL_UP)
@@ -96,3 +96,4 @@ def main():
         time.sleep(0.02)
 
 main()
+
