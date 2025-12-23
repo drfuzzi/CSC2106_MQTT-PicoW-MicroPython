@@ -82,9 +82,6 @@ You need the `umqtt.simple` library for MQTT communication:
  <img src="/img/Thonny How to Run Code.png" width=25% height=25%>
 
 ### A. Pico A → *Command publisher* (event-driven, button presses)
-
-**picoA.py (publisher driven by buttons)**
-
 * **Hardware input**: Reads two buttons on **GP21** and **GP22** (`Pin.IN`, pull-ups). 
 * **MQTT behaviour**: Connects, publishes **status online/offline** to `stm/devA/status`. 
 * **Publishes messages**:
@@ -94,6 +91,7 @@ You need the `umqtt.simple` library for MQTT communication:
 * **No subscriptions**: It does not subscribe or process incoming MQTT messages. 
 * **Reconnect logic**: Only attempts reconnect **when a publish fails** (inside `publish_toggle()` / `publish_hello()`). 
 
+**picoA.py (publisher driven by buttons)**
 ```python
 import network, time
 from umqtt.simple import MQTTClient
@@ -195,9 +193,6 @@ def main():
 main()
 ```
 ### B. Pico B → *Command consumer + actuator* (always listening, reacts to commands)
-
-**picoB.py (subscriber/actuator that toggles an LED)**
-
 * **Hardware output**: Drives an LED on **GP20** (`Pin.OUT`). 
 * **MQTT behaviour**: Connects, sets a callback, **subscribes** to `stm/led/cmd` (QoS 1), and publishes **status online/offline** to `stm/devB/status`. 
 * **Processes incoming messages**:
@@ -206,6 +201,7 @@ main()
 * **Reconnect logic**: Continuously calls `client.check_msg()`; if any MQTT error occurs, it reconnects. 
 * **Note**: `on_msg()` uses the global `client` variable (works here because `client` is defined globally after `make_client()`). 
 
+**picoB.py (subscriber/actuator that toggles an LED)**
 ```
 import network, time
 from umqtt.simple import MQTTClient
