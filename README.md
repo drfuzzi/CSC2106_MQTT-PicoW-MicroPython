@@ -104,28 +104,31 @@ You need the `umqtt.simple` library for MQTT communication:
 * Published **with retain = True**
 
 ---
-Uses retained messages for: `csc2106/devA/status`
+## PicoA.py — MQTT Behaviour Summary
 
-Behaviour:
-* On connect → publishes `"online"` (retained)
-* On crash → broker publishes `"offline"` (retained via LWT)
+### Retained Messages
+- **Topic:** `csc2106/devA/status`
+- **Behaviour:**
+  - On connect → publishes `"online"` *(retained)*
+  - On unexpected crash/disconnect → broker publishes `"offline"` via **LWT** *(retained)*
+- **Result:**
+  - Monitoring clients immediately know Pico A’s latest state
+  - No need to wait for a new publish after subscribing
+- **Meaning:**
+  - If Pico A dies suddenly, the broker sets:  
+    `csc2106/devA/status = offline` *(retained)*
+  - Any subscriber instantly sees Pico A as offline
 
-Result:
-* Any monitoring client instantly knows Pico A’s state
-* No need to wait for a new publish
+### Quality of Service (QoS)
+- **QoS level used:** **QoS 1 (at least once)**
+- **Applied to:**
+  - Command messages:  `csc2106/led/cmd` & `csc2106/led/hello`
+  - Status messages: `csc2106/devA/status`
+- **Rationale:**
+  - Button presses are **important events**
+  - Losing a TOGGLE or HELLO command is unacceptable
+  - QoS 1 ensures the broker receives the message and acknowledges it
 
-Meaning:
-* If Pico A dies suddenly, the broker publishes: `csc2106/devA/status = offline (retained)`
-* Any subscriber immediately sees Pico A as offline.
-
-Uses **QoS 1** for:
-* Command messages: `csc2106/led/cmd` & `csc2106/led/hello`
-* Status messages: `csc2106/devA/status`
-
-Why this makes sense:
-* Button presses are **important events**
-* Losing a TOGGLE command is bad
-* QoS 1 ensures the broker receives it (with ACK)
 ---
 
 **picoA.py (publisher driven by buttons)**
@@ -243,25 +246,36 @@ main()
 * LWT publishes `"offline"` on unexpected disconnect
 
 ---
-Meaning:
-* Pico B’s availability is independently tracked.
-* This is the **correct IoT heartbeat pattern**.
+## PicoB.py — MQTT Behaviour Summary
 
-Uses **QoS 1** for:
-* Subscription to: `csc2106/led/cmd`
-* ACK publish to: `csc2106/led/ack`
-* Status messages: `csc2106/devB/status`
+### Availability Tracking (LWT + Retained Status)
+- **Topic:** `csc2106/devB/status`
+- **Behaviour:**
+  - On connect → publishes `"online"` *(retained)*
+  - On unexpected crash/disconnect → broker publishes `"offline"` via **LWT** *(retained)*
+- **Meaning:**
+  - Pico B’s availability is independently tracked
+  - This follows the **correct IoT heartbeat pattern**, allowing observers to know device liveness immediately
 
-Why this makes sense:
-* Device must not miss commands
-* ACK must reliably reach observers
-* Exactly matches expected behaviour of an actuator
+---
+### Quality of Service (QoS)
+- **QoS level used:** **QoS 1 (at least once)**
+- **Applied to:**
+  - Subscription to command topic: `csc2106/led/cmd`
+  - ACK publish topic: `csc2106/led/ack`
+  - Status messages: `csc2106/devB/status`
+- **Rationale:**
+  - The device must not miss incoming commands
+  - ACK messages must reliably reach monitoring clients
+  - This matches the expected behaviour of an actuator node
 
-Same pattern on: `csc2106/devB/status`
-
-Additionally:
-* ACK messages (`stm/led/ack`) are **not retained**
-  * Correct choice: ACKs are **events**, not state
+### Retained vs Event Messages
+- **Retained:**
+  - `csc2106/devB/status` (state / liveness)
+- **Not retained:**
+  - ACK messages: `csc2106/led/ack`
+    - Correct design choice: ACKs represent **events**, not persistent state
+---
 
 **picoB.py (subscriber/actuator that toggles an LED)**
 ```
