@@ -89,13 +89,12 @@ Update the broker configuration to allow network access.
 ```conf
 listener 1883
 allow_anonymous true
-
+```
 #### Start the broker
 
 ```bash
 mosquitto -c mosquitto.conf -v
 ```
-
 (Default port: **1883**)
 
 ---
