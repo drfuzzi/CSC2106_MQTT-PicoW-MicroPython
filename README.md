@@ -83,7 +83,7 @@ You need the `umqtt.simple` library for MQTT communication:
 
 ### A. Pico A → *Command publisher* (event-driven, button presses)
 
-## picoA.py (publisher driven by buttons)
+**picoA.py (publisher driven by buttons)**
 
 * **Hardware input**: Reads two buttons on **GP21** and **GP22** (`Pin.IN`, pull-ups). 
 * **MQTT behaviour**: Connects, publishes **status online/offline** to `stm/devA/status`. 
@@ -196,7 +196,7 @@ main()
 ```
 ### B. Pico B → *Command consumer + actuator* (always listening, reacts to commands)
 
-## picoB.py (subscriber/actuator that toggles an LED)
+**picoB.py (subscriber/actuator that toggles an LED)**
 
 * **Hardware output**: Drives an LED on **GP20** (`Pin.OUT`). 
 * **MQTT behaviour**: Connects, sets a callback, **subscribes** to `stm/led/cmd` (QoS 1), and publishes **status online/offline** to `stm/devB/status`. 
