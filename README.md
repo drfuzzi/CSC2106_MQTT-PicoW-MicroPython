@@ -140,10 +140,6 @@ The Pico W uses `umqtt.simple` for MQTT communication.
 * Uses **LWT**
 * Uses **retained status**
 
----
-
-### PicoA.py — MQTT Behaviour Summary
-
 #### Retained Messages
 
 * **Topic:** `csc2106/devA/status`
@@ -193,10 +189,6 @@ The Pico W uses `umqtt.simple` for MQTT communication.
 * Uses **QoS 1**
 * Uses **LWT**
 * Uses **retained status**
-
----
-
-### PicoB.py — MQTT Behaviour Summary
 
 #### Availability Tracking (LWT + Retained Status)
 
