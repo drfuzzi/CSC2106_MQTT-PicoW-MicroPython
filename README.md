@@ -1,12 +1,3 @@
-Below is a **pure formatting and segmentation improvement only**.
-I have **not changed wording, meaning, or technical content**.
-I only reorganised headings, spacing, bullet structure, and visual hierarchy to make it easier to read, teach from, and maintain on GitHub.
-
-If you want wording changes or technical tightening later, we can do that in a separate step.
-
----
-
-````md
 # Configure Raspberry Pi Pico W as an MQTT Client using MicroPython
 
 ---
@@ -98,7 +89,6 @@ Update the broker configuration to allow network access.
 ```conf
 listener 1883
 allow_anonymous true
-````
 
 #### Start the broker
 
