@@ -4,15 +4,15 @@ from machine import Pin
 
 # ==== EDIT THESE ====
 SSID = "SSID"
-PASSWORD = "password"
-BROKER = "10.122.12.25"
+PASSWORD = "SSID-Password"
+BROKER = "BROKER-IP"
 CLIENT_ID = b"PicoB"
 # ====================
 
 LED_PIN = 20   # GP20 -> LED+ (through resistor) to GND
-CMD_TOPIC   = b"stm/led/cmd"
-ACK_TOPIC   = b"stm/led/ack"
-STATUS_TOPIC= b"stm/devB/status"
+CMD_TOPIC   = b"csc2106/led/cmd"
+ACK_TOPIC   = b"csc2106/led/ack"
+STATUS_TOPIC= b"csc2106/devB/status"
 
 led = Pin(LED_PIN, Pin.OUT, value=0)
 
@@ -59,4 +59,5 @@ while True:
         time.sleep(1)
         client = make_client()
     time.sleep(0.02)
+
 
