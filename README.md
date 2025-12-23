@@ -25,10 +25,19 @@ By the end of this session, participants will be able to set up their Raspberry 
 ## III. MQTT Setup on MicroPython
 MQTT (Message Queue Telemetry Transport) is a lightweight messaging protocol ideal for IoT applications where network bandwidth and processing power are limited. It works on a publish/subscribe model using topics, making it easy to send and receive messages between devices.
 
-### Key Components
+### MQTT Components
 - **Broker:** Handles all message routing between clients.
 - **Client:** A device that can publish, subscribe, or both.
 - **Topic:** A hierarchical string that defines where messages are published and from where they are subscribed.
+- **QoS (Quality of Service)**
+  - **QoS 0** – fire and forget
+  - **QoS 1** – at least once (ACK required)
+  - **QoS 2** – exactly once (heavy, not used here)
+- **Last Will and Testament:** LWT is a message the **broker publishes on behalf of the client** if the client disconnects **unexpectedly** (power loss, crash, Wi-Fi drop).
+  - *“Is this device still alive?”*
+- **Retained messages:** A retained message is **stored by the broker** and immediately sent to **new subscribers**.
+  - *“last known state”*
+
 
 Example MQTT architecture:
 
@@ -83,13 +92,30 @@ You need the `umqtt.simple` library for MQTT communication:
 
 ### A. Pico A → *Command publisher* (event-driven, button presses)
 * **Hardware input**: Reads two buttons on **GP21** and **GP22** (`Pin.IN`, pull-ups). 
-* **MQTT behaviour**: Connects, publishes **status online/offline** to `stm/devA/status`. 
+* **MQTT behaviour**: Connects, publishes **status online/offline** to `csc2106/devA/status`. 
 * **Publishes messages**:
 
-  * On GP21 press: publishes `TOGGLE` to `stm/led/cmd` (QoS 1). 
-  * On GP22 press: publishes `HELLO` to `stm/led/hello` (QoS 1). 
+  * On GP21 press: publishes `TOGGLE` to `csc2106/led/cmd` (QoS 1). 
+  * On GP22 press: publishes `HELLO` to `csc2106/led/hello` (QoS 1). 
 * **No subscriptions**: It does not subscribe or process incoming MQTT messages. 
 * **Reconnect logic**: Only attempts reconnect **when a publish fails** (inside `publish_toggle()` / `publish_hello()`). 
+* Sets an LWT on: `csc2106/devA/status`
+* LWT payload: `"offline"`
+* Published **with retain = True**
+
+Meaning:
+* If Pico A dies suddenly, the broker publishes: `csc2106/devA/status = offline (retained)`
+* Any subscriber immediately sees Pico A as offline.
+
+* Uses **QoS 1** for:
+* Command messages: `csc2106/led/cmd` & `csc2106/led/hello`
+* Status messages: `csc2106/devA/status`
+---
+Why this makes sense:
+* Button presses are **important events**
+* Losing a TOGGLE command is bad
+* QoS 1 ensures the broker receives it (with ACK)
+---
 
 **picoA.py (publisher driven by buttons)**
 ```python
@@ -201,6 +227,26 @@ main()
 * **Reconnect logic**: Continuously calls `client.check_msg()`; if any MQTT error occurs, it reconnects. 
 * **Note**: `on_msg()` uses the global `client` variable (works here because `client` is defined globally after `make_client()`). 
 
+* Same pattern, but for: `csc2106/devB/status`
+* Also publishes `"online"` on successful connect
+* LWT publishes `"offline"` on unexpected disconnect
+
+Meaning:
+* Pico B’s availability is independently tracked.
+* This is the **correct IoT heartbeat pattern**.
+
+* Uses **QoS 1** for:
+* Subscription to: `csc2106/led/cmd`
+* ACK publish to: `csc2106/led/ack`
+* Status messages: `csc2106/devB/status`
+
+Why this makes sense:
+* Device must not miss commands
+* ACK must reliably reach observers
+* Exactly matches expected behaviour of an actuator
+
+
+
 **picoB.py (subscriber/actuator that toggles an LED)**
 ```
 import network, time
@@ -209,15 +255,15 @@ from machine import Pin
 
 # ==== EDIT THESE ====
 SSID = "SSID"
-PASSWORD = "password"
-BROKER = "10.122.12.25"
+PASSWORD = "SSID-Password"
+BROKER = "BROKER-IP"
 CLIENT_ID = b"PicoB"
 # ====================
 
 LED_PIN = 20   # GP20 -> LED+ (through resistor) to GND
-CMD_TOPIC   = b"stm/led/cmd"
-ACK_TOPIC   = b"stm/led/ack"
-STATUS_TOPIC= b"stm/devB/status"
+CMD_TOPIC   = b"csc2106/led/cmd"
+ACK_TOPIC   = b"csc2106/led/ack"
+STATUS_TOPIC= b"csc2106/devB/status"
 
 led = Pin(LED_PIN, Pin.OUT, value=0)
 
