@@ -104,6 +104,16 @@ You need the `umqtt.simple` library for MQTT communication:
 * Published **with retain = True**
 
 ---
+Uses retained messages for: `csc2106/devA/status`
+
+Behaviour:
+* On connect → publishes `"online"` (retained)
+* On crash → broker publishes `"offline"` (retained via LWT)
+
+Result:
+* Any monitoring client instantly knows Pico A’s state
+* No need to wait for a new publish
+
 Meaning:
 * If Pico A dies suddenly, the broker publishes: `csc2106/devA/status = offline (retained)`
 * Any subscriber immediately sees Pico A as offline.
@@ -246,8 +256,12 @@ Why this makes sense:
 * Device must not miss commands
 * ACK must reliably reach observers
 * Exactly matches expected behaviour of an actuator
----
 
+Same pattern on: `csc2106/devB/status`
+
+Additionally:
+* ACK messages (`stm/led/ack`) are **not retained**
+  * Correct choice: ACKs are **events**, not state
 
 **picoB.py (subscriber/actuator that toggles an LED)**
 ```
@@ -316,37 +330,22 @@ while True:
 
 ```
 
-## Advanced MQTT Configuration
+---
+### Behavioural difference caused by design - Why this distinction matters
 
-### 1. Quality of Service (QoS)
-MQTT supports three QoS levels:
+* **State topics** → retained (`status`)
+* **Event topics** → NOT retained (`cmd`, `ack`, `hello`)
 
-QoS 0: At most once (no guarantee of delivery)
+| Aspect           | picoA.py                     | picoB.py                     |
+| ---------------- | ---------------------------- | ---------------------------- |
+| MQTT role        | Publisher only               | Subscriber + publisher       |
+| LWT              | Yes (`devA/status`)          | Yes (`devB/status`)          |
+| QoS              | QoS 1 publishes              | QoS 1 subscribe + publish    |
+| Retained         | Status only                  | Status only                  |
+| Message handling | Event-driven                 | Continuous (`check_msg`)     |
+| Failure handling | Reconnect on publish failure | Reconnect on receive failure |
 
-QoS 1: At least once (may deliver duplicates)
-
-QoS 2: Exactly once (most reliable, but slowest)
-
-Example with QoS 1:
-```
-mqtt.subscribe("pico/led", qos=1)
-mqtt.publish("pico/led", "on", qos=1)
-```
-
-### 2. Last Will & Testament (LWT)
-
-Notifies subscribers if a client disconnects unexpectedly:
-```
-client = MQTTClient(CLIENT_ID, BROKER, keepalive=60)
-client.set_last_will("pico/status", "offline", retain=True)
-```
-
-### 3. Retained Messages
-
-Ensures new subscribers immediately receive the last published message:
-```
-mqtt.publish("pico/led", "on", retain=True)
-```
+---
 
 ### 4. Persistent Sessions
 
@@ -364,19 +363,9 @@ client = MQTTClient(CLIENT_ID, BROKER, clean_session=False)
 | Multiple clients conflicting | Use unique `CLIENT_ID` for each client |
 -------------------------------------------------------------------------
 
-<!--
-## Lab Assignment
-
-Configure two Pico W devices.
-Device A controls Device B's LED via MQTT.
-Use retained messages and LWT to improve reliability.
--->
 
 ## References
 Mosquitto Install Guide (http://www.steves-internet-guide.com/install-mosquitto-broker/)
-
 Mosquitto Client Guide(http://www.steves-internet-guide.com/mosquitto_pub-sub-clients/)
-
 Thingsboard MQTT Integration (https://thingsboard.io/docs/user-guide/integrations/mqtt/)
-
 ThingSpeak MQTT Basics (https://www.mathworks.com/help/thingspeak/mqtt-basics.html)
