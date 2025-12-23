@@ -2,7 +2,7 @@
 
 ## I. Objectives
 
-By the end of this session, participants will be able to set up their Raspberry Pi Pico W (as clients) and Raspberry Pi (as broker) to develop a solution using Mosquitto's MQTT. They will also explore MQTT features like QoS, LWT, and retained messages.
+By the end of this session, participants will be able to set up their Raspberry Pi Pico W (as clients) and Raspberry Pi/Laptop (as broker) to develop a solution using Mosquitto's MQTT. They will also explore MQTT features like QoS, LWT, and retained messages.
 
 ## II. Prerequisites and Setup
 
@@ -38,8 +38,8 @@ Example MQTT architecture:
 
 ## Setup Instructions
 
-### 0. Setting Up MQTT Broker (on your laptop)
-We will use Mosquitto MQTT broker [version 2](http://www.steves-internet-guide.com/download/6-bit-mosquitto-v2/). After unzipping, update the configuration file (`mosquitto.conf`) to allow network address listening.
+### 1. Setting Up MQTT Broker (on your laptop or Raspberry Pi)
+We will use Mosquitto MQTT broker [version 2](http://www.steves-internet-guide.com/download/6-bit-mosquitto-v2/). After unzipping, update the configuration file (`mosquitto.conf`) to allow network address listening. Note that version 2 mosquitto supports MQTT version 3 and 5.
 
 <!--
 ![overview](https://github.com/user-attachments/assets/ccd7d55a-ce37-42c3-99f8-d6a004bc2fe9)
@@ -55,21 +55,9 @@ listener 1883
 allow_anonymous true
 ```
 
-### 1. Install MicroPython on the Pico W
-1. Download the latest MicroPython firmware for Pico W:  
-   [https://micropython.org/download/RPI_PICO_W/](https://micropython.org/download/RPI_PICO_W/)
-2. Flash the firmware onto the Pico W (drag and drop the `.uf2` file when Pico W is in BOOTSEL mode).
-
 ---
 
-### 2. Prepare Thonny
-- Install [Thonny IDE](https://thonny.org/).
-- Connect Pico W to your PC.
-- In **Tools → Options → Interpreter**, select `MicroPython (Raspberry Pi Pico)` and choose the correct port.
-
----
-
-### 3. Install MQTT Library
+### 2. Install MQTT Library
 You need the `umqtt.simple` library for MQTT communication:
 1. In Thonny's **Files** view, create a folder named `lib` on the Pico W.
 
