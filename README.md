@@ -234,7 +234,7 @@ The Pico W uses `umqtt.simple` for MQTT communication.
 | Failure handling | Reconnect on publish | Reconnect on receive      |
 
 ---
-## IX. References
+## VII. References
 
 * Mosquitto Install Guide
   [http://www.steves-internet-guide.com/install-mosquitto-broker/](http://www.steves-internet-guide.com/install-mosquitto-broker/)
@@ -245,4 +245,6 @@ The Pico W uses `umqtt.simple` for MQTT communication.
 * ThingSpeak MQTT Basics
   [https://www.mathworks.com/help/thingspeak/mqtt-basics.html](https://www.mathworks.com/help/thingspeak/mqtt-basics.html)
 
-```
+***
+
+[Assignment for this Lab Session](/Assignment.md)
